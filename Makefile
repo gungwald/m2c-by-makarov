@@ -41,7 +41,7 @@ man1dir=$(prefix)/man/man1
 m2library=m2lib.a
 
 # C compiler and its flag used for compilation of C files.
-CC=gcc
+CC=tcc
 CFLAGS= -O -g -I. -I$(srcdir) -I$(srcdir)/config\
  -DSTANDARD_LIBRARY_DIRECTORY='"$(libdir)"'\
  -DTEMPORARY_DIRECTORY='"$(tempdir)"'\
@@ -149,29 +149,29 @@ m2-semantics.o: $(COMMON) $(srcdir)/m2-semantics.h $(srcdir)/m2-semantics.c
 m2-generator.o: $(COMMON) $(srcdir)/m2-generator.h $(srcdir)/m2-generator.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2-generator.c
 
-m2l_eq.o: m2lib.h $(srcdir)/m2l_eq.c
+m2l_eq.o: $(srcdir)/m2lib.h $(srcdir)/m2l_eq.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_eq.c
-m2l_ne.o: m2lib.h $(srcdir)/m2l_ne.c
+m2l_ne.o: $(srcdir)/m2lib.h $(srcdir)/m2l_ne.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_ne.c
-m2l_assarr.o: m2lib.h $(srcdir)/m2l_assarr.c
+m2l_assarr.o: $(srcdir)/m2lib.h $(srcdir)/m2l_assarr.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_assarr.c
-m2l_assstr.o: m2lib.h $(srcdir)/m2l_assstr.c
+m2l_assstr.o: $(srcdir)/m2lib.h $(srcdir)/m2l_assstr.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_assstr.c
-m2l_cap.o: m2lib.h $(srcdir)/m2l_cap.c
+m2l_cap.o: $(srcdir)/m2lib.h $(srcdir)/m2l_cap.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_cap.c
-m2l_halt.o: m2lib.h $(srcdir)/m2l_halt.c
+m2l_halt.o: $(srcdir)/m2lib.h $(srcdir)/m2l_halt.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_halt.c
-m2l_arrpar.o: m2lib.h $(srcdir)/m2l_arrpar.c
+m2l_arrpar.o: $(srcdir)/m2lib.h $(srcdir)/m2l_arrpar.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_arrpar.c
-m2l_testptr.o: m2lib.h $(srcdir)/m2l_testptr.c
+m2l_testptr.o: $(srcdir)/m2lib.h $(srcdir)/m2l_testptr.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_testptr.c
-m2l_rngovf.o: m2lib.h $(srcdir)/m2l_rngovf.c
+m2l_rngovf.o: $(srcdir)/m2lib.h $(srcdir)/m2l_rngovf.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_rngovf.c
-m2l_cor.o: m2lib.h $(srcdir)/m2l_cor.c
+m2l_cor.o: $(srcdir)/m2lib.h $(srcdir)/m2l_cor.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_cor.c
-m2l_setin.o: m2lib.h $(srcdir)/m2l_setin.c
+m2l_setin.o: $(srcdir)/m2lib.h $(srcdir)/m2l_setin.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_setin.c
-m2l_nites.o: m2lib.h $(srcdir)/m2l_nites.c
+m2l_nites.o: $(srcdir)/m2lib.h $(srcdir)/m2l_nites.c
 	$(CC) $(CFLAGS) -c $(srcdir)/m2l_nites.c
 
 $(m2library): $(M2LIBPROC)
@@ -181,10 +181,10 @@ $(m2library): $(M2LIBPROC)
 # Creation of all object files and copying the translator
 # `m2c', `m2c.1', Modula-2 run time library, definition, implementation
 # standard modules and its object files to target directories.
-install: all uninstall $(libdir) $(bindir) $(man1dir)\
+install: all uninstall $(libdir) $(bindir) $(man1dir) $(includedir)\
          $(libdir)/$(m2library) $(bindir)/m2c $(man1dir)/m2c.1
 	$(INSTALLDATA) $(IMPF) $(DEFF) $(libdir)
-	$(INSTALLDATA) m2lib.h $(includedir)
+	$(INSTALLDATA) $(srcdir)/m2lib.h $(includedir)
 	for i in $(IMPF); do\
          $(INSTALLDATA) `basename $$i .mod`.o\
             $(libdir)/$i`basename $$i .mod`.o;\
@@ -192,7 +192,7 @@ install: all uninstall $(libdir) $(bindir) $(man1dir)\
 
 # Delete the installed files and empty installation directories.
 uninstall:
-	-rm -f $(libdir)/$(m2library) $(bindir)/m2c $(man1dir)/m2c.1
+	-rm -f $(libdir)/$(m2library) $(bindir)/m2c $(man1dir)/m2c.1 $(includedir)/m2lib.h
 	-for i in $(DEFF); do\
           rm -f $(libdir)/`basename $$i`;\
         done
@@ -200,16 +200,19 @@ uninstall:
           rm -f $(libdir)/`basename $$i`;\
           rm -f $(libdir)/`basename $$i .mod`.o;\
         done
-	-rmdir $(libdir) $(bindir) $(man1dir)
+	-rmdir $(libdir) $(bindir) $(man1dir) $(includedir)
 
 $(libdir):
-	mkdir $(libdir)
+	mkdir -p $(libdir)
 
 $(bindir):
-	mkdir $(bindir)
+	mkdir -p $(bindir)
 
 $(man1dir):
-	mkdir $(man1dir)
+	mkdir -p $(man1dir)
+
+$(includedir):
+	mkdir -p $(includedir)
 
 $(libdir)/$(m2library): $(m2library)
 	$(INSTALLDATA) $(m2library) $(libdir)/$(m2library)
@@ -234,11 +237,11 @@ TAGS: $(M2CSF) $(M2LIBSF)
 
 # Unconditional creation of compressed distribution tar file.
 dist:
-	-mkdir $(distdir)
+	-mkdir -p $(distdir)
 	rm -f -r $(distdir)/*
 	cp $(DISTSF) $(distdir)
 	-for i in $(ADDITIONAL_DIRECTORIES); do\
-	 mkdir $(distdir)/`basename $$i`;\
+	 mkdir -p $(distdir)/`basename $$i`;\
 	 cp $$i/* $(distdir)/`basename $$i`;\
         done
 	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz 

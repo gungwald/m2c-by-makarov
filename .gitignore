@@ -56,3 +56,6 @@ dkms.conf
 
 # Build files
 build/
+
+# Target
+m2c

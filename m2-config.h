@@ -17,7 +17,7 @@
  */
 
 #include "generic.h"
-#include "gcc.h"
+#include "tcc.h"
 
 
 /* If the following macros is defined than it is used for making more
